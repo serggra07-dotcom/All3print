@@ -1,0 +1,473 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All3Print // Инженерный Реестр Полимеров</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #09090b;
+            color: #f4f4f5;
+        }
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(9, 9, 11, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            border-color: rgba(212, 175, 55, 0.5);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+        }
+        .gold-glow {
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Реалистичные текстуры */
+        .tex-glossy { background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.3); }
+        .tex-matte { background-color: #334155; box-shadow: inset 0 0 8px rgba(0,0,0,0.6); border: 2px dashed #64748b !important; }
+        .tex-silk { background: linear-gradient(45deg, #f472b6, #c084fc, #38bdf8, #f472b6); background-size: 300% 300%; animation: silk-glow 6s ease infinite; box-shadow: inset 0 2px 6px rgba(255,255,255,0.7); }
+        @keyframes silk-glow { 0% { background-position: 0% 50% } 50% { background-position: 100% 50% } 100% { background-position: 0% 50% } }
+        .tex-carbon { background-color: #09090b; background-image: linear-gradient(45deg, #18181b 25%, transparent 25%), linear-gradient(-45deg, #18181b 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #18181b 75%), linear-gradient(-45deg, transparent 75%, #18181b 75%); background-size: 6px 6px; background-position: 0 0, 0 3px, 3px -3px, -3px 0px; border: 1px solid #3f3f46 !important; box-shadow: inset 0 0 6px rgba(0,0,0,0.9); }
+        .tex-glass { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.4) !important; box-shadow: inset 0 0 10px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.3); }
+        .tex-foamed { background-color: #64748b; background-image: radial-gradient(#94a3b8 30%, transparent 31%); background-size: 4px 4px; box-shadow: inset 0 0 8px rgba(0,0,0,0.5); }
+        .tex-wood { background-color: #7c2d12; background-image: repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.2) 4px, rgba(0,0,0,0.2) 8px); box-shadow: inset 0 0 6px rgba(0,0,0,0.6); }
+        .tex-metal { background: radial-gradient(circle, #f59e0b 0%, #b45309 60%, #78350f 100%); box-shadow: inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.5); }
+        .tex-tpu { background: linear-gradient(135deg, #059669 0%, #064e3b 100%); box-shadow: inset 0 0 12px rgba(0,0,0,0.4); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #09090b; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen pb-20 selection:bg-amber-500/30 selection:text-amber-200" x-data="plasticsApp()">
+
+    <!-- Навигационная панель -->
+    <nav class="border-b border-white/5 bg-zinc-950/80 sticky top-0 z-40 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)]"></div>
+                <span class="text-xs font-semibold tracking-[0.25em] text-zinc-400 uppercase">All3Print // Справочник</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button @click="showCompareModal = true" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-2 cursor-pointer">
+                    <span>⭐ Избранное для сравнения</span>
+                    <span class="bg-amber-500 text-zinc-950 px-1.5 py-0.5 rounded-md font-bold text-[10px]" x-text="favorites.length"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 pt-12">
+        <!-- Шапка -->
+        <header class="mb-14 text-center">
+            <h1 class="text-4xl sm:text-6xl font-bold tracking-tight text-white mb-4">
+                Каталог <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 gold-glow">Инженерных Полимеров</span>
+            </h1>
+            <p class="text-zinc-400 text-sm sm:text-base tracking-wide max-w-2xl mx-auto font-normal">
+                Профессиональный интерактивный реестр физико-механических свойств, текстур и характеристик FDM-пластиков.
+            </p>
+        </header>
+
+        <!-- Панель фильтров -->
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 mb-10 shadow-2xl grid grid-cols-1 sm:grid-cols-5 gap-6 items-end">
+            <!-- Поиск -->
+            <div class="sm:col-span-1">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2.5">Поиск по базе</label>
+                <input type="text" x-model="searchQuery" placeholder="Например: PEEK, карбон, нейлон..." class="w-full glass-input rounded-2xl px-4 py-3 text-sm text-zinc-200 focus:outline-none placeholder:text-zinc-600">
+            </div>
+
+            <!-- Группа -->
+            <div class="sm:col-span-1">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2.5">Классификация</label>
+                <select x-model="selectedGroup" class="w-full glass-input rounded-2xl px-4 py-3 text-sm text-zinc-200 focus:outline-none cursor-pointer">
+                    <option value="" class="bg-zinc-900">Все классы (100)</option>
+                    <template x-for="group in groups" :key="group">
+                        <option :value="group" x-text="group" class="bg-zinc-900"></option>
+                    </template>
+                </select>
+            </div>
+
+            <!-- Сортировка -->
+            <div class="sm:col-span-1">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2.5">Сортировка</label>
+                <select x-model="sortBy" class="w-full glass-input rounded-2xl px-4 py-3 text-sm text-zinc-200 focus:outline-none cursor-pointer">
+                    <option value="id" class="bg-zinc-900">По номеру (001 → 100)</option>
+                    <option value="str-desc" class="bg-zinc-900">Прочность: по убыванию</option>
+                    <option value="str-asc" class="bg-zinc-900">Прочность: по возрастанию</option>
+                    <option value="tough-desc" class="bg-zinc-900">Ударопрочность: по убыванию</option>
+                    <option value="heat-desc" class="bg-zinc-900">Термостойкость: по убыванию</option>
+                    <option value="heat-asc" class="bg-zinc-900">Термостойкость: по возрастанию</option>
+                    <option value="diff-asc" class="bg-zinc-900">Сложность: от простых</option>
+                    <option value="diff-desc" class="bg-zinc-900">Сложность: от сложных</option>
+                </select>
+            </div>
+
+            <!-- Переключатель макета (Сетка 3х / Список) -->
+            <div class="sm:col-span-1">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2.5">Вид отображения</label>
+                <div class="flex bg-zinc-950/80 border border-white/10 rounded-2xl p-1">
+                    <button @click="viewMode = 'grid'" :class="viewMode === 'grid' ? 'bg-amber-500 text-zinc-950 font-bold' : 'text-zinc-400 hover:text-white'" class="flex-1 py-2 text-xs rounded-xl transition cursor-pointer">Сетка (3х)</button>
+                    <button @click="viewMode = 'list'" :class="viewMode === 'list' ? 'bg-amber-500 text-zinc-950 font-bold' : 'text-zinc-400 hover:text-white'" class="flex-1 py-2 text-xs rounded-xl transition cursor-pointer">Список</button>
+                </div>
+            </div>
+
+            <!-- Быстрый тумблер избранного -->
+            <div class="sm:col-span-1">
+                <label class="flex items-center gap-3 bg-zinc-950/60 border border-white/5 rounded-2xl px-4 py-3 cursor-pointer hover:border-amber-500/30 transition h-[46px]">
+                    <input type="checkbox" x-model="filterFavorites" class="rounded bg-zinc-900 border-zinc-700 text-amber-500 focus:ring-0 w-4 h-4 cursor-pointer">
+                    <span class="text-xs font-medium text-zinc-300">Избранное ⭐</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Статистика выдачи -->
+        <div class="mb-6 text-xs font-medium text-zinc-400 flex justify-between items-center px-2">
+            <span>Отображено образцов: <strong class="text-amber-400 font-semibold" x-text="filteredPlastics.length"></strong></span>
+            <button @click="resetFilters()" class="text-amber-400/90 hover:text-amber-300 transition tracking-wider uppercase text-[11px] font-semibold" x-show="searchQuery || selectedGroup || filterFavorites">Сбросить фильтры</button>
+        </div>
+
+        <!-- РЕЖИМ СЕТКИ (Шириной в 3 колонки) -->
+        <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <template x-for="item in filteredPlastics" :key="item.id">
+                <div class="glass-panel rounded-3xl p-6 shadow-xl hover:border-amber-500/30 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
+                    
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-all duration-500 pointer-events-none"></div>
+
+                    <div>
+                        <!-- Шапка карточки -->
+                        <div class="flex items-start justify-between gap-4 mb-4">
+                            <div class="w-16 h-16 rounded-2xl shadow-xl shadow-black/60 shrink-0 transition-transform duration-300 group-hover:scale-105 relative" :class="item.tex" :title="item.look">
+                                <button @click="toggleFavorite(item.id)" class="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center text-xs shadow-md transition hover:scale-110 cursor-pointer" :title="isFavorite(item.id) ? 'Убрать из избранного' : 'Добавить в избранное'">
+                                    <span x-text="isFavorite(item.id) ? '⭐' : '☆'"></span>
+                                </button>
+                            </div>
+                            
+                            <div class="flex flex-col items-end gap-1.5 text-right">
+                                <span class="inline-block bg-zinc-900 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-xl border border-white/5 shadow-inner" x-text="'#' + String(item.id).padStart(3, '0')"></span>
+                                <span class="text-[11px] text-zinc-500 font-medium tracking-wide max-w-[180px] truncate" x-text="item.group"></span>
+                            </div>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-white tracking-tight mb-2" x-text="item.name"></h3>
+                        <p class="text-xs text-zinc-400 mb-5 leading-relaxed font-normal" x-text="item.spec"></p>
+                        
+                        <!-- Блок свойств -->
+                        <div class="space-y-2 mb-6 bg-zinc-950/60 border border-white/5 rounded-2xl p-3.5 text-xs">
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-amber-400/90 font-semibold shrink-0">🎨 Внешний вид:</span>
+                                <span class="text-zinc-300 leading-snug" x-text="item.look"></span>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-amber-400/90 font-semibold shrink-0">🔗 Спекаемость:</span>
+                                <span class="text-zinc-300 leading-snug" x-text="item.layer"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Индикаторные шкалы (Полностью на русском) -->
+                    <div class="space-y-2.5 border-t border-white/5 pt-5 mt-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-zinc-400 font-medium w-36">Прочность:</span>
+                            <div class="flex-1 mx-3 bg-zinc-950 h-2 rounded-full overflow-hidden border border-white/5">
+                                <div class="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full shadow-[0_0_10px_rgba(52,211,153,0.3)]" :style="`width: ${item.str * 10}%`"></div>
+                            </div>
+                            <span class="font-bold text-emerald-400 w-5 text-right" x-text="item.str"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-zinc-400 font-medium w-36">Ударопрочность:</span>
+                            <div class="flex-1 mx-3 bg-zinc-950 h-2 rounded-full overflow-hidden border border-white/5">
+                                <div class="bg-gradient-to-r from-sky-600 to-sky-400 h-full rounded-full shadow-[0_0_10px_rgba(56,189,248,0.3)]" :style="`width: ${item.tough * 10}%`"></div>
+                            </div>
+                            <span class="font-bold text-sky-400 w-5 text-right" x-text="item.tough"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-zinc-400 font-medium w-36">Хрупкость:</span>
+                            <div class="flex-1 mx-3 bg-zinc-950 h-2 rounded-full overflow-hidden border border-white/5">
+                                <div class="bg-gradient-to-r from-amber-600 to-amber-400 h-full rounded-full" :style="`width: ${item.brit * 10}%`"></div>
+                            </div>
+                            <span class="font-bold text-amber-400 w-5 text-right" x-text="item.brit"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-zinc-400 font-medium w-36">Термостойкость:</span>
+                            <div class="flex-1 mx-3 bg-zinc-950 h-2 rounded-full overflow-hidden border border-white/5">
+                                <div class="bg-gradient-to-r from-rose-600 to-rose-400 h-full rounded-full shadow-[0_0_10px_rgba(251,113,133,0.3)]" :style="`width: ${item.heat * 10}%`"></div>
+                            </div>
+                            <span class="font-bold text-rose-400 w-5 text-right" x-text="item.heat"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-zinc-400 font-medium w-36">Сложность печати:</span>
+                            <div class="flex-1 mx-3 bg-zinc-950 h-2 rounded-full overflow-hidden border border-white/5">
+                                <div class="bg-gradient-to-r from-purple-600 to-purple-400 h-full rounded-full" :style="`width: ${item.diff * 10}%`"></div>
+                            </div>
+                            <span class="font-bold text-purple-400 w-5 text-right" x-text="item.diff"></span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- РЕЖИМ СПИСКА (Линейная таблица на русском) -->
+        <div x-show="viewMode === 'list'" class="space-y-3">
+            <template x-for="item in filteredPlastics" :key="item.id">
+                <div class="glass-panel rounded-2xl p-4 shadow-md hover:border-amber-500/30 transition flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl shrink-0 relative shadow-md" :class="item.tex" :title="item.look">
+                            <button @click="toggleFavorite(item.id)" class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center text-[10px] shadow cursor-pointer">
+                                <span x-text="isFavorite(item.id) ? '⭐' : '☆'"></span>
+                            </button>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-amber-400" x-text="'#' + String(item.id).padStart(3, '0')"></span>
+                                <h3 class="text-base font-bold text-white" x-text="item.name"></h3>
+                            </div>
+                            <p class="text-xs text-zinc-400 line-clamp-1 max-w-xl" x-text="item.spec"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-2 text-xs w-full lg:w-auto justify-start lg:justify-end border-t lg:border-t-0 pt-2 lg:pt-0 border-white/5 shrink-0">
+                        <span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg border border-emerald-500/20">Прочность: <strong x-text="item.str"></strong></span>
+                        <span class="bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded-lg border border-sky-500/20">Удар: <strong x-text="item.tough"></strong></span>
+                        <span class="bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-lg border border-amber-500/20">Хрупкость: <strong x-text="item.brit"></strong></span>
+                        <span class="bg-rose-500/10 text-rose-400 px-2.5 py-1 rounded-lg border border-rose-500/20">Термо: <strong x-text="item.heat"></strong></span>
+                        <span class="bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-lg border border-purple-500/20">Сложность: <strong x-text="item.diff"></strong></span>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Модальное окно сравнения (Полностью на русском) -->
+    <div x-show="showCompareModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-panel w-full max-w-5xl rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl relative max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+                <h2 class="text-xl font-bold text-white flex items-center gap-3">
+                    <span>⭐ Сравнение избранных полимеров</span>
+                    <span class="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-lg border border-amber-500/30" x-text="favorites.length + ' шт.'"></span>
+                </h2>
+                <button @click="showCompareModal = false" class="text-zinc-400 hover:text-white text-lg font-bold w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-white/10 cursor-pointer">✕</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pr-2">
+                <template x-if="favorites.length === 0">
+                    <div class="text-center py-12 text-zinc-500">
+                        <p class="text-base mb-2">В избранном пока пусто.</p>
+                        <p class="text-xs">Нажимайте звёздочку ⭐ на карточках материалов, чтобы добавить их сюда для прямого сопоставления.</p>
+                    </div>
+                </template>
+
+                <template x-if="favorites.length > 0">
+                    <div class="space-y-4">
+                        <template x-for="item in favoriteItems" :key="item.id">
+                            <div class="bg-zinc-950/70 border border-white/5 rounded-2xl p-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl shrink-0" :class="item.tex"></div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white" x-text="item.name"></h4>
+                                        <span class="text-[11px] text-zinc-500" x-text="item.group"></span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2 text-xs">
+                                    <span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg border border-emerald-500/20">Прочность: <strong x-text="item.str"></strong></span>
+                                    <span class="bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded-lg border border-sky-500/20">Удар: <strong x-text="item.tough"></strong></span>
+                                    <span class="bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-lg border border-amber-500/20">Хрупкость: <strong x-text="item.brit"></strong></span>
+                                    <span class="bg-rose-500/10 text-rose-400 px-2.5 py-1 rounded-lg border border-rose-500/20">Термо: <strong x-text="item.heat"></strong></span>
+                                    <span class="bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-lg border border-purple-500/20">Сложность: <strong x-text="item.diff"></strong></span>
+                                    <button @click="toggleFavorite(item.id)" class="text-zinc-500 hover:text-rose-400 ml-2 cursor-pointer" title="Удалить из сравнения">🗑️</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Полный массив данных (100 образцов, полностью на русском языке) -->
+    <script>
+        function plasticsApp() {
+            return {
+                searchQuery: '',
+                selectedGroup: '',
+                sortBy: 'id',
+                filterFavorites: false,
+                viewMode: 'grid',
+                favorites: JSON.parse(localStorage.getItem('all3print_favorites') || '[]'),
+                showCompareModal: false,
+                groups: [
+                    "1. PLA и модификации",
+                    "2. Полиэфиры (PETG / PET / PCTG)",
+                    "3. Стирольные (ABS / ASA / HIPS)",
+                    "4. Полиамиды (PA / PPA)",
+                    "5. Поликарбонаты (PC)",
+                    "6. Эластомеры (TPU / TPE / PEBA)",
+                    "7. Полиолефины и антифрикционные (PP / PE / POM)",
+                    "8. Суперконструкционные (PEEK / PEI / PPS)",
+                    "9. Поддержки и спецматериалы"
+                ],
+                plastics: [
+                    { id: 1, name: "PLA (Стандартный)", group: "1. PLA и модификации", str: 6, tough: 2, brit: 8, heat: 2, diff: 1, spec: "Высокая жёсткость и минимальная усадка, но низкая ударная вязкость и размягчение при 55–60°C.", look: "Глянцевый, яркие цвета, отличная детализация.", layer: "Хорошая при правильной температуре, но слои легко расщепляются при ударе.", tex: "tex-glossy" },
+                    { id: 2, name: "PLA+ / PLA Pro (Ударопрочный)", group: "1. PLA и модификации", str: 6, tough: 5, brit: 5, heat: 2, diff: 1, spec: "Модифицированный эластомерами PLA с повышенной пластичностью и сниженной склонностью к сколам.", look: "Полуглянцевый, ровный цвет, меньше блестит, чем чистый PLA.", layer: "Выше межслойная прочность за счёт модификаторов вязкости.", tex: "tex-glossy" },
+                    { id: 3, name: "High-Speed PLA (Высокоскоростной)", group: "1. PLA и модификации", str: 5, tough: 3, brit: 7, heat: 2, diff: 1, spec: "Высокий индекс текучести расплава для печати на скоростях 300–600 мм/с.", look: "Стандартный глянцевый или полуматовый финиш.", layer: "Оптимизирована для быстрого потока, спекается стабильно на высоких скоростях.", tex: "tex-glossy" },
+                    { id: 4, name: "Tough PLA (Конструкционный)", group: "1. PLA и модификации", str: 6, tough: 6, brit: 4, heat: 3, diff: 2, spec: "Ударопрочный компаунд PLA для функциональных прототипов и корпусных деталей.", look: "Полуматовый однородный пластик.", layer: "Отличное спекание слоёв, приближенное к инженерным пластикам.", tex: "tex-glossy" },
+                    { id: 5, name: "Matte PLA (Матовый)", group: "1. PLA и модификации", str: 4, tough: 2, brit: 8, heat: 2, diff: 2, spec: "С минеральным матирующим наполнителем; скрывает слои, но имеет сниженную межслойную адгезию.", look: "Глубокий матовый бархатистый финиш, идеально скрывает линии печати.", layer: "Пониженная межслойная адгезия из-за твердых минеральных микрочастиц.", tex: "tex-matte" },
+                    { id: 6, name: "Silk PLA (Шёлковый)", group: "1. PLA и модификации", str: 3, tough: 2, brit: 8, heat: 2, diff: 2, spec: "Глянцевый декоративный композит с пониженной прочностью спайки слоёв.", look: "Яркий перламутровый металлический перелив («шёлк»).", layer: "Слабая межслойная прочность, детали легко ломаются поперёк слоёв.", tex: "tex-silk" },
+                    { id: 7, name: "LW-PLA (Активно вспенивающийся)", group: "1. PLA и модификации", str: 2, tough: 3, brit: 4, heat: 2, diff: 5, spec: "Вспенивается в сопле при 230–250°C, снижая плотность детали до 50–65% для РУ-авиамоделей.", look: "Шероховатая матовая поверхность («вспененная» текстура).", layer: "Хорошее монолитное спекание за счёт расширения полимера в объёме.", tex: "tex-foamed" },
+                    { id: 8, name: "LW-PLA (Предварительно вспененный)", group: "1. PLA и модификации", str: 3, tough: 3, brit: 5, heat: 2, diff: 2, spec: "Предварительно вспененный филамент со стабильной геометрией и предсказуемыми ретрактами.", look: "Матовая текстура с ровным диаметром прутка.", layer: "Стабильное спекание без неожиданных перепадов плотности.", tex: "tex-foamed" },
+                    { id: 9, name: "HT-PLA (Термостойкий / Отжигаемый)", group: "1. PLA и модификации", str: 7, tough: 4, brit: 6, heat: 7, diff: 3, spec: "Кристаллизуется при термическом отжиге (90–110°C), повышая теплостойкость HDT до 120–150°C.", look: "После отжига становится чуть темнее и полностью матовым.", layer: "После термообработки слои сплавляются в единый плотный массив.", tex: "tex-matte" },
+                    { id: 10, name: "PLA-CF (Углеволокно)", group: "1. PLA и модификации", str: 8, tough: 2, brit: 8, heat: 3, diff: 3, spec: "Армирован рубленым углеволокном: высокий модуль упругости на изгиб, требует закалённого сопла.", look: "Красивая матовая угольно-чёрная текстура с микрорельефом.", layer: "Волокно снижает усадку, но чуть уменьшает межслойную прочность.", tex: "tex-carbon" },
+                    { id: 11, name: "PLA-GF (Стекловолокно)", group: "1. PLA и модификации", str: 7, tough: 3, brit: 7, heat: 3, diff: 3, spec: "Армирован стекловолокном: повышенная жёсткость и размерная стабильность, диэлектрик.", look: "Матовый жесткий пластик со сглаженными слоями.", layer: "Умеренная межслойная спекаемость, требует точной температуры.", tex: "tex-matte" },
+                    { id: 12, name: "Wood PLA (Древесный композит)", group: "1. PLA и модификации", str: 3, tough: 2, brit: 8, heat: 2, diff: 3, spec: "Наполнен древесной мукой (до 30%), легко шлифуется, рекомендуется сопло от 0.5–0.6 мм.", look: "Фактура и запах настоящего дерева, можно тонировать морилкой.", layer: "Средняя спекаемость, поры древесины снижают монолитность.", tex: "tex-wood" },
+                    { id: 13, name: "Marble PLA (Под мрамор / камень)", group: "1. PLA и модификации", str: 4, tough: 2, brit: 8, heat: 2, diff: 2, spec: "Имитация камня и гипса для архитектурных макетов, визуально маскирует слоистость.", look: "Каменная крошка, мраморные разводы, идеально прячет швы.", layer: "Стандартная для PLA спекаемость слоёв.", tex: "tex-matte" },
+                    { id: 14, name: "Glow PLA (Люминесцентный)", group: "1. PLA и модификации", str: 5, tough: 2, brit: 8, heat: 2, diff: 3, spec: "Содержит люминофор (алюминат стронция), светится в темноте, обладает высокой абразивностью к соплу.", look: "Полупрозрачный при дневном свете, ярко-зелёное или голубое свечение в темноте.", layer: "Жёсткие частицы люминофора ухудшают межслойную спайку.", tex: "tex-glass" },
+                    { id: 15, name: "Metal-filled PLA (Металлонаполненный)", group: "1. PLA и модификации", str: 3, tough: 1, brit: 9, heat: 2, diff: 4, spec: "Высоконаполненный порошком бронзы, меди или стали (до 80% по массе) для полировки и патинирования.", look: "Холодный тяжелый пластик, полируется до металлического блеска.", layer: "Низкая межслойная прочность из-за огромного процента металлической пудры.", tex: "tex-metal" },
+                    { id: 16, name: "Conductive PLA (Токопроводящий)", group: "1. PLA и модификации", str: 4, tough: 2, brit: 8, heat: 2, diff: 3, spec: "Токопроводящий компаунд с техническим углеродом для антистатики и слаботочных цепей.", look: "Угольно-чёрный матовый.", layer: "Удовлетворительное спекание, проводит ток по осям X/Y лучше, чем по Z.", tex: "tex-carbon" },
+                    { id: 17, name: "Magnetic PLA (Магнитный с железом)", group: "1. PLA и модификации", str: 3, tough: 1, brit: 9, heat: 2, diff: 4, spec: "Наполнен ферромагнитным железным порошком, взаимодействует с магнитами и подвержен окислению.", look: "Тяжелый темно-серый металл, ржавеет при травлении солью и перекисью.", layer: "Хрупкий по слоям из-за железосодержащего наполнителя.", tex: "tex-metal" },
+                    { id: 18, name: "Soft / Flexible PLA (Мягкий / Гибкий)", group: "1. PLA и модификации", str: 3, tough: 8, brit: 1, heat: 2, diff: 3, spec: "Пластифицированный гибкий биополимер с низкими температурами экструзии.", look: "Полупрозрачный мягкий пластик с умеренным блеском.", layer: "Очень прочное вязкое спекание слоёв благодаря пластификаторам.", tex: "tex-glass" },
+                    
+                    { id: 19, name: "PETG (Стандартный)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 5, tough: 6, brit: 3, heat: 4, diff: 2, spec: "Универсальный сополиэфир: высокая межслойная адгезия, химстойкость, теплостойкость около 70°C.", look: "Глянцевый, слегка «стеклянный» вид, склонен к паутине (стрингингу).", layer: "Великолепная спекаемость слоёв: слои оторвать друг от друга крайне сложно.", tex: "tex-glass" },
+                    { id: 20, name: "High-Speed PETG (Высокоскоростной)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 5, tough: 5, brit: 4, heat: 4, diff: 2, spec: "Модифицированная реология для быстрой печати с уменьшенным образованием нитей (стрингинга).", look: "Полуглянцевый ровный финиш.", layer: "Отличное спекание на повышенных скоростях экструзии.", tex: "tex-glossy" },
+                    { id: 21, name: "Tough PETG / PETG+ (Ударопрочный)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 5, tough: 7, brit: 2, heat: 4, diff: 2, spec: "Улучшенная стойкость к ударным нагрузкам без хрупкого растрескивания.", look: "Ровный полуглянец.", layer: "Повышенная вязкость и монолитность межслойной спайки.", tex: "tex-glossy" },
+                    { id: 22, name: "Matte PETG (Матовый)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 4, tough: 5, brit: 4, heat: 4, diff: 2, spec: "Матовая поверхность без характерного для стандартного PETG глянцевого блеска.", look: "Благородный матовый пластик без дешевого блеска.", layer: "Хорошее спекание, чуть уступающее обычному глянцевому PETG.", tex: "tex-matte" },
+                    { id: 23, name: "PETG-CF (Углеволокно)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 7, tough: 5, brit: 5, heat: 5, diff: 3, spec: "Углеволокно повышает жёсткость, убирает текучесть под нагрузкой и снижает налипание на сопло.", look: "Идеальный благородный бархатистый матово-чёрный цвет.", layer: "Плотное спекание, углеволокно убирает избыточную тягучесть PETG.", tex: "tex-carbon" },
+                    { id: 24, name: "PETG-GF (Стекловолокно)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 7, tough: 6, brit: 4, heat: 5, diff: 3, spec: "Стеклонаполненный композит с высокой прочностью, электроизоляцией и стойкостью к ползучести.", look: "Матовая поверхность, диэлектрические свойства.", layer: "Прочное геометрически стабильное спекание.", tex: "tex-matte" },
+                    { id: 25, name: "PETG-ESD (Антистатический)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 5, tough: 5, brit: 4, heat: 4, diff: 3, spec: "Рассеивающий статику компаунд для корпусов РЭА и производственной оснастки.", look: "Темно-серый или черный техностиль.", layer: "Стабильное промышленное спекание слоёв.", tex: "tex-carbon" },
+                    { id: 26, name: "PET (Чистый немодифицированный ПЭТ)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 7, tough: 5, brit: 4, heat: 5, diff: 4, spec: "Кристаллизующийся полиэтилентерефталат без гликоля: выше жёсткость и теплостойкость, чем у PETG.", look: "Прозрачный глянцевый или молочный.", layer: "Требует точного подбора температуры для прочного спекания.", tex: "tex-glass" },
+                    { id: 27, name: "PET-CF (ПЭТ с углеволокном)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 9, tough: 5, brit: 5, heat: 8, diff: 4, spec: "Высокомодульный конструкционный композит: низкое влагопоглощение, после отжига держит до 130–150°C.", look: "Угольно-черный текстурный матовый карбон.", layer: "Отличное спекание, высокая прочность вдоль оси Z после отжига.", tex: "tex-carbon" },
+                    { id: 28, name: "PET-GF (ПЭТ со стекловолокном)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 8, tough: 5, brit: 4, heat: 7, diff: 4, spec: "Жёсткий стеклонаполненный ПЭТ для силовых каркасов и радиопрозрачных корпусов.", look: "Матовый инженерный пластик.", layer: "Прочное монолитное спекание при закрытой камере.", tex: "tex-matte" },
+                    { id: 29, name: "PCTG (Сверхударопрочный сополиэфир)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 5, tough: 8, brit: 1, heat: 4, diff: 2, spec: "Вдвое более высокая ударная вязкость по сравнению с PETG, термостойкость до 75–80°C.", look: "Кристально прозрачный (как стекло) или цветной глянец.", layer: "Феноменальная межслойная адгезия и вязкость.", tex: "tex-glass" },
+                    { id: 30, name: "PCTG-CF / GF (Армированный PCTG)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 7, tough: 7, brit: 3, heat: 5, diff: 3, spec: "Армированный PCTG: сочетание высокой ударной вязкости матрицы и жёсткости волокна.", look: "Матовый текстурный композит.", layer: "Высокая прочность на разрыв по слоям.", tex: "tex-carbon" },
+                    { id: 31, name: "CPE (Инженерный сополиэфир)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 6, tough: 6, brit: 3, heat: 5, diff: 3, spec: "Инженерный сополиэфир с повышенной стойкостью к маслам, смазкам и нагреву до 80–85°C.", look: "Промышленный полуглянец.", layer: "Отличная спекаемость без расслоения под нагрузкой.", tex: "tex-glossy" },
+                    { id: 32, name: "Tritan (Термостойкий сополиэфир)", group: "2. Полиэфиры (PETG / PET / PCTG)", str: 6, tough: 8, brit: 1, heat: 6, diff: 4, spec: "Термостойкий прозрачный сополиэфир (до 95–100°C), стойкий к щелочам и гидролизу.", look: "Идеальная оптическая прозрачность, устойчивая к мытью.", layer: "Высокая вязкость расплава, требует тепла для идеального спекания.", tex: "tex-glass" },
+
+                    { id: 33, name: "ABS (Стандартный)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 5, tough: 7, brit: 3, heat: 6, diff: 5, spec: "Конструкционный термопласт (держит ~95°C), легко обрабатывается механически и ацетоном, даёт усадку.", look: "Полуматовый классический пластик, легко полируется парами ацетона в зеркало.", layer: "Хорошее спекание в закрытой камере, но склонен к растрескиванию по слоям на сквозняке.", tex: "tex-glossy" },
+                    { id: 34, name: "ABS+ / Easy ABS (Безусадочный)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 5, tough: 6, brit: 4, heat: 5, diff: 3, spec: "Модифицированный ABS со сниженной термической усадкой для печати без подогреваемой камеры.", look: "Гладкий матовый финиш.", layer: "Пониженные внутренние напряжения, слои держатся крепче, чем у чистого ABS.", tex: "tex-glossy" },
+                    { id: 35, name: "ABS-CF (Углеволокно)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 7, tough: 5, brit: 5, heat: 6, diff: 4, spec: "Углеволокно подавляет коробление ABS и повышает жёсткость корпусных и станочных деталей.", look: "Красивый фактурный матовый карбон.", layer: "Углеволокно снижает усадку, делая геометрию стабильнее.", tex: "tex-carbon" },
+                    { id: 36, name: "ABS-GF (Стекловолокно)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 7, tough: 6, brit: 4, heat: 6, diff: 4, spec: "Стеклонаполненный ABS с минимальной усадкой и высокой геометрической точностью.", look: "Плотный технический мат.", layer: "Плотное спекание с минимальным короблением углов.", tex: "tex-matte" },
+                    { id: 37, name: "ABS-ESD (Антистатический)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 5, tough: 5, brit: 4, heat: 6, diff: 5, spec: "Антистатический пластик для кондукторов, держателей плат и оснастки на линиях пайки.", look: "Индустриальный серо-черный мат.", layer: "Промышленное спекание для силовых приспособлений.", tex: "tex-carbon" },
+                    { id: 38, name: "ABS-FR (Огнестойкий)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 5, tough: 6, brit: 4, heat: 6, diff: 5, spec: "Огнестойкий компаунд (категория UL94 V-0) с антипиренами для электротехнических корпусов.", look: "Стандартный матовый электротехнический пластик.", layer: "Спекаемость хорошая, но антипирены требуют правильной температуры.", tex: "tex-matte" },
+                    { id: 39, name: "ABS-Kevlar (С кевларом / арамидом)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 6, tough: 7, brit: 2, heat: 6, diff: 5, spec: "Армирован арамидным волокном: высокая стойкость к истиранию и ударным нагрузкам, малый износ сопла.", look: "Текстурная матовая поверхность с микроволокнами.", layer: "Высокая вязкость и прочность межслойного сцепления.", tex: "tex-matte" },
+                    { id: 40, name: "PC-ABS (Поликарбонат-АБС сплав)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 7, tough: 8, brit: 2, heat: 7, diff: 6, spec: "Смесь поликарбоната и ABS: высокая ударная вязкость даже при отрицательных температурах, держит ~110–120°C.", look: "Прочный конструкционный глянец.", layer: "Отличное прочное спекание за счет поликарбонатной основы.", tex: "tex-glossy" },
+                    { id: 41, name: "ASA (УФ-стойкий уличный)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 6, tough: 7, brit: 3, heat: 6, diff: 5, spec: "Атмосферостойкий аналог ABS, полностью устойчивый к ультрафиолетовому излучению и старению на улице.", look: "Матовый или полуглянцевый, не желтеет на солнце годами.", layer: "Аналогично ABS: требует закрытой камеры для монолитного спекания.", tex: "tex-matte" },
+                    { id: 42, name: "ASA-CF (Углеволокно)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 8, tough: 5, brit: 4, heat: 7, diff: 4, spec: "Жёсткий УФ-стойкий углекомпозит без коробления для наружного оборудования, БПЛА и автотюнинга.", look: "Премиальный матовый черный карбон.", layer: "Отличное спекание без сильной усадки благодаря армированию.", tex: "tex-carbon" },
+                    { id: 43, name: "ASA-GF (Стекловолокно)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 7, tough: 6, brit: 4, heat: 7, diff: 4, spec: "Радиопрозрачный атмосферостойкий композит со стекловолокном для уличных антенн и корпусов.", look: "Матовый уличный пластик.", layer: "Плотное надежное спекание слоёв.", tex: "tex-matte" },
+                    { id: 44, name: "LW-ASA (Вспенивающийся лёгкий)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 2, tough: 3, brit: 4, heat: 5, diff: 5, spec: "Вспенивающийся лёгкий ASA для РУ-авиамоделей: не деформируется на летнем солнце в отличие от LW-PLA.", look: "Легкая пористая матовая поверхность.", layer: "Спекается за счет расширения объема при высокой температуре.", tex: "tex-foamed" },
+                    { id: 45, name: "HIPS (Ударопрочный полистирол)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 4, tough: 6, brit: 4, heat: 5, diff: 4, spec: "Ударопрочный полистирол: малый удельный вес, растворяется в D-лимонене, легко склеивается и шлифуется.", look: "Приятный матовый пластик с низкой плотностью.", layer: "Хорошо спекается, часто используется как растворимая поддержка для ABS.", tex: "tex-matte" },
+                    { id: 46, name: "SAN (Стирол-акрилонитрил)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 6, tough: 3, brit: 7, heat: 5, diff: 4, spec: "Прозрачный жёсткий сополимер стирола и акрилонитрила с высокой стойкостью к маслам и жирам.", look: "Прозрачный твердый глянцевый материал.", layer: "Умеренная межслойная прочность, склонен к хрупкости.", tex: "tex-glass" },
+                    { id: 47, name: "SBS / Watson (Упругий стирольный)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 3, tough: 8, brit: 1, heat: 4, diff: 2, spec: "Стирол-бутадиен-стирольный термоэластопласт: упругий, глянцевый, полируется растворителями до прозрачности.", look: "Стеклянный глянец, при обработке сольвентом становится оптически прозрачным.", layer: "Невероятно прочное эластичное спекание слоёв, порвать невозможно.", tex: "tex-glass" },
+                    { id: 48, name: "GPPS (Чистый полистирол)", group: "3. Стирольные (ABS / ASA / HIPS)", str: 4, tough: 1, brit: 9, heat: 4, diff: 3, spec: "Полистирол общего назначения: прозрачный, твёрдый, диэлектрический, но хрупкий на изгиб.", look: "Звонкий прозрачный пластик (как коробка компакт-диска).", layer: "Хрупкая межслойная спайка, склонен к трещинам.", tex: "tex-glass" },
+
+                    { id: 49, name: "PA6 (Нейлон 6)", group: "4. Полиамиды (PA / PPA)", str: 7, tough: 8, brit: 1, heat: 6, diff: 7, spec: "Высокая прочность и износостойкость в парах трения, но высокая усадка и быстрое поглощение влаги из воздуха.", look: "Полуматовый скользкий пластик молочного или черного цвета.", layer: "Феноменальная прочность спекания (слои сливаются в монолит), но высокая усадка.", tex: "tex-matte" },
+                    { id: 50, name: "PA12 (Нейлон 12)", group: "4. Полиамиды (PA / PPA)", str: 6, tough: 8, brit: 1, heat: 6, diff: 6, spec: "Низкое влагопоглощение и лучшая стабильность размеров по сравнению с PA6, высокая ударная вязкость.", look: "Гладкий матовый финиш.", layer: "Отличное монолитное спекание со значительно меньшим короблением, чем у PA6.", tex: "tex-matte" },
+                    { id: 51, name: "PA6/66 (Сополимер нейлона)", group: "4. Полиамиды (PA / PPA)", str: 6, tough: 8, brit: 1, heat: 6, diff: 5, spec: "Сополимер с замедленной кристаллизацией, снижающей отрыв углов от стола при печати.", look: "Технический полуглянец.", layer: "Высокая межслойная адгезия, прощает небольшие ошибки настройки.", tex: "tex-matte" },
+                    { id: 52, name: "PA11 (Био-полиамид 11)", group: "4. Полиамиды (PA / PPA)", str: 5, tough: 9, brit: 1, heat: 5, diff: 6, spec: "Эластичный био-полиамид с высокой стойкостью к ударным нагрузкам при низких температурах и к ГСМ.", look: "Эластичный матовый натуральный нейлон.", layer: "Высочайшая вязкость и монолитность сцепления слоёв.", tex: "tex-matte" },
+                    { id: 53, name: "PA6-CF (Нейлон 6 с углеволокном)", group: "4. Полиамиды (PA / PPA)", str: 9, tough: 6, brit: 3, heat: 8, diff: 5, spec: "Силовой угленаполненный полиамид: минимальная усадка, высочайшая прочность и теплостойкость до 170–190°C.", look: "Премиальный черный бархатистый углекомпозит.", layer: "Очень прочное спекание; волокно полностью снимает усадку нейлона.", tex: "tex-carbon" },
+                    { id: 54, name: "PA12-CF (Нейлон 12 с углеволокном)", group: "4. Полиамиды (PA / PPA)", str: 8, tough: 6, brit: 3, heat: 8, diff: 4, spec: "Стабильный углекомпозит со сниженной гигроскопичностью, сохраняющий жёсткость во влажной среде.", look: "Глубокий матовый карбон.", layer: "Идеальное спекание слоёв без коробления на открытых принтерах с термостолом.", tex: "tex-carbon" },
+                    { id: 55, name: "PA6-GF (Нейлон 6 со стекловолокном)", group: "4. Полиамиды (PA / PPA)", str: 8, tough: 7, brit: 2, heat: 8, diff: 5, spec: "Стеклонаполненный PA6 (до 30% волокна): промышленный стандарт для корпусов электроинструмента и кронштейнов.", look: "Плотный промышленный матовый пластик.", layer: "Монолитное спекание конструкционного уровня.", tex: "tex-matte" },
+                    { id: 56, name: "PA12-GF (Нейлон 12 со стекловолокном)", group: "4. Полиамиды (PA / PPA)", str: 7, tough: 7, brit: 2, heat: 7, diff: 4, spec: "Влагостойкий стеклонаполненный полиамид для наружных механизмов и нагруженных корпусов.", look: "Стеклонаполненный техноматовый.", layer: "Высокая прочность спекания по оси Z.", tex: "tex-matte" },
+                    { id: 57, name: "PA-Kevlar (Нейлон с кевларом)", group: "4. Полиамиды (PA / PPA)", str: 7, tough: 8, brit: 1, heat: 7, diff: 5, spec: "Полиамид с арамидным волокном для шестерён и направляющих: не вызывает абразивного износа ответных деталей.", look: "Золотисто-желтоватые или черные ворсистые переливы арамида.", layer: "Отличное межслойное спекание, стойкость к истиранию.", tex: "tex-carbon" },
+                    { id: 58, name: "PPA (Высокотемпературный полифталамид)", group: "4. Полиамиды (PA / PPA)", str: 8, tough: 6, brit: 3, heat: 8, diff: 7, spec: "Высокотемпературный полуароматический полиамид с повышенной жёсткостью и стойкостью к автохимии.", look: "Твердый инженерный матовый пластик.", layer: "Требует высоких температур хотэнда (300°C+) для качественного спекания слоёв.", tex: "tex-matte" },
+                    { id: 59, name: "PPA-CF / PAHT-CF (Углекомпозит PPA)", group: "4. Полиамиды (PA / PPA)", str: 10, tough: 6, brit: 4, heat: 9, diff: 5, spec: "Сверхжёсткий конструкционный углекомпозит: прочность до 140–160 МПа, держит 190–210°C, низкое водопоглощение.", look: "Элитный сверхпрочный карбон с металлическим звоном.", layer: "Исключительное спекание и жесткость на уровне лёгких сплавов.", tex: "tex-carbon" },
+                    { id: 60, name: "PPA-GF (Стеклонаполненный PPA)", group: "4. Полиамиды (PA / PPA)", str: 9, tough: 6, brit: 3, heat: 9, diff: 5, spec: "Термостойкий диэлектрический композит со стекловолокном для узлов подкапотного пространства.", look: "Плотный диэлектрический матовый пластик.", layer: "Отличное монолитное спекание в термокамере.", tex: "tex-matte" },
+
+                    { id: 61, name: "PC (Чистый поликарбонат)", group: "5. Поликарбонаты (PC)", str: 8, tough: 9, brit: 1, heat: 8, diff: 8, spec: "Экстремальная ударная вязкость и теплостойкость до 135–145°C; требует хотэнда 290–310°C и термокамеры.", look: "Прозрачный пуленепробиваемый глянец или дымчатый оттенок.", layer: "Требует горячей камеры (90–110°C), иначе слои склонны к расслоению при ударе.", tex: "tex-glass" },
+                    { id: 62, name: "Easy PC / PC-Blend (Модифицированный)", group: "5. Поликарбонаты (PC)", str: 7, tough: 8, brit: 2, heat: 7, diff: 5, spec: "Модифицированный сополимер поликарбоната со сниженной усадкой (печать при 255–275°C, держит ~110–120°C).", look: "Гладкий полуглянцевый пластик.", layer: "Улучшенная спекаемость слоев по сравнению с чистым поликарбонатом.", tex: "tex-glass" },
+                    { id: 63, name: "PC-CF (Поликарбонат с углеволокном)", group: "5. Поликарбонаты (PC)", str: 9, tough: 6, brit: 4, heat: 8, diff: 5, spec: "Высокая геометрическая жёсткость, практически полное отсутствие ползучести под длительной нагрузкой.", look: "Черный матовый жесткий карбон.", layer: "Отличное спекание, углеволокно полностью гасит усадку PC.", tex: "tex-carbon" },
+                    { id: 64, name: "PC-GF (Поликарбонат со стекловолокном)", group: "5. Поликарбонаты (PC)", str: 8, tough: 7, brit: 3, heat: 8, diff: 5, spec: "Ударопрочный электроизолирующий композит для силовых щитов, держателей АКБ и разъёмов.", look: "Матовый жесткий диэлектрик.", layer: "Прочное стабильное спекание слоев.", tex: "tex-matte" },
+                    { id: 65, name: "PC-PBT (Морозостойкий сплав)", group: "5. Поликарбонаты (PC)", str: 7, tough: 9, brit: 1, heat: 7, diff: 6, spec: "Морозостойкий сплав (до -40°C) с высокой стойкостью к растрескиванию в контакте с топливом и маслами.", look: "Инженерный прочный глянец.", layer: "Монолитная межслойная вязкость в мороз и жару.", tex: "tex-glossy" },
+                    { id: 66, name: "PC-PTFE (Поликарбонат с тефлоном)", group: "5. Поликарбонаты (PC)", str: 7, tough: 7, brit: 2, heat: 8, diff: 6, spec: "Поликарбонат с добавкой фторопласта для снижения коэффициента трения и износа в нагруженных узлах.", look: "Матовый скользкий поликарбонат.", layer: "Фторопластовая добавка снижает адгезию слоев -- требует точного подбора температуры.", tex: "tex-matte" },
+                    { id: 67, name: "PC-FR (Огнестойкий UL94 V-0)", group: "5. Поликарбонаты (PC)", str: 8, tough: 8, brit: 2, heat: 8, diff: 7, spec: "Самозатухающий поликарбонат для авиационного, железнодорожного и приборного применения.", look: "Строгий технический матовый пластик.", layer: "Плотное спекание слоёв для ответственных корпусов.", tex: "tex-matte" },
+
+                    { id: 68, name: "TPU 95A (Стандартный полиуретан)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 3, tough: 10, brit: 1, heat: 4, diff: 3, spec: "Стандартный термопластичный полиуретан средней жёсткости: высокая стойкость к раздиру, истиранию и маслам.", look: "Полуглянцевый упругий пластик, слои практически сливаются в монолит.", layer: "Идеальная, неразрушимая спекаемость слоёв (деталь невозможно расслоить руками).", tex: "tex-tpu" },
+                    { id: 69, name: "TPU 85A / 80A (Мягкий полиуретан)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 2, tough: 10, brit: 1, heat: 4, diff: 6, spec: "Мягкий эластомер для демпферов и уплотнений; требует директ-экструдера и низкой скорости подачи.", look: "Резиновая мягкая текстура.", layer: "Сверхмонолитное резиновое спекание слоев.", tex: "tex-tpu" },
+                    { id: 70, name: "TPU 60A–70A (Сверхмягкий)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 1, tough: 10, brit: 1, heat: 3, diff: 8, spec: "Сверхмягкий полиуретан, склонный к заминанию в подающем механизме экструдера.", look: "Похож на мягкий силикон.", layer: "Сплавляется намертво, но требует идеальной настройки подачи.", tex: "tex-tpu" },
+                    { id: 71, name: "TPU 64D / 75D (Жёсткий конструкционный)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 5, tough: 10, brit: 1, heat: 5, diff: 3, spec: "Жёсткий конструкционный полиуретан: держит форму как твёрдый пластик, но не раскалывается при сильных ударах.", look: "Твердый износостойкий полуглянец.", layer: "Отличное спекание, сочетающее жесткость пластика и вязкость резины.", tex: "tex-tpu" },
+                    { id: 72, name: "High-Speed TPU (Высокоскоростной)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 3, tough: 10, brit: 1, heat: 4, diff: 3, spec: "Оптимизированная текучесть и пониженное поверхностное трение прутка для печати до 150–200 мм/с.", look: "Гладкий ровный эластомерный финиш.", layer: "Стабильное высокоскоростное спекание без потери прочности.", tex: "tex-tpu" },
+                    { id: 73, name: "LW-TPU / VarioShore (Вспенивающийся)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 2, tough: 9, brit: 1, heat: 3, diff: 5, spec: "Вспенивающийся эластомер: позволяет регулировать плотность и твёрдость по Шору (от 92A до 55A) температурой сопла.", look: "Бархатистая мягкая вспененная текстура.", layer: "Монолитное спекание за счет микропор.", tex: "tex-foamed" },
+                    { id: 74, name: "TPU-CF (Полиуретан с углеволокном)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 5, tough: 9, brit: 2, heat: 5, diff: 4, spec: "Армированный углеволокном полиуретан: высокая жёсткость на растяжение при сохранении виброгасящих свойств.", look: "Черный матовый резино-карбон.", layer: "Хорошее спекание, волокно снижает эластичность вдоль оси Z, но повышает жесткость.", tex: "tex-carbon" },
+                    { id: 75, name: "TPU-ESD (Антистатический / Проводящий)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 3, tough: 9, brit: 1, heat: 4, diff: 4, spec: "Токопроводящий эластомер для антистатических роликов, захватов манипуляторов и уплотнителей.", look: "Техно-черная резина.", layer: "Прочное эластичное спекание.", tex: "tex-carbon" },
+                    { id: 76, name: "TPE (Термоэластопласт)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 2, tough: 10, brit: 1, heat: 4, diff: 6, spec: "Смесевой термоэластопласт с матовой бархатистой поверхностью и низким остаточным сжатием.", look: "Приятный матовый «бархат» на ощупь.", layer: "Отличное межслойное сцепление.", tex: "tex-tpu" },
+                    { id: 77, name: "TPC / PEBA (Полиэфирблокамид)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 4, tough: 10, brit: 1, heat: 5, diff: 5, spec: "Полиэфирблокамид с максимальным коэффициентом упругого возврата энергии и морозостойкостью.", look: "Премиальный полуглянцевый элитный эластомер.", layer: "Исключительная межслойная прочность и долговечность на изгиб.", tex: "tex-tpu" },
+                    { id: 78, name: "FPE (Гибкий сополиэфир)", group: "6. Эластомеры (TPU / TPE / PEBA)", str: 4, tough: 9, brit: 1, heat: 5, diff: 3, spec: "Гибкий сополиэфир с высокой химстойкостью и более простой подачей в экструдере, чем у мягких TPU.", look: "Гладкий гибкий пластик.", layer: "Прочное спекание слоев, печатается проще, чем мягкие сорта TPU.", tex: "tex-tpu" },
+
+                    { id: 79, name: "PP (Полипропилен)", group: "7. Полиолефины и антифрикционные (PP / PE / POM)", str: 4, tough: 9, brit: 1, heat: 5, diff: 7, spec: "Сверхвысокая выносливость на многократный изгиб (гибкие петли), стойкость к кислотам/щелочам, сильная усадка.", look: "Полупрозрачный воскообразный пластик (плавает в воде).", layer: "Слои спекаются неплохо, но адгезия к столу и усадка требуют специальных лент (скотча из PP).", tex: "tex-glass" },
+                    { id: 80, name: "PP-CF (Полипропилен с углеволокном)", group: "7. Полиолефины и антифрикционные (PP / PE / POM)", str: 6, tough: 7, brit: 3, heat: 6, diff: 4, spec: "Углеволокно устраняет коробление полипропилена при сохранении малого веса (плотность около 1.0 г/см³) и химстойкости.", look: "Матовый легкий углекомпозит.", layer: "Армирование волокном стабилизирует геометрию и спекание слоёв.", tex: "tex-carbon" },
+                    { id: 81, name: "PP-GF (Полипропилен со стекловолокном)", group: "7. Полиолефины и антифрикционные (PP / PE / POM)", str: 6, tough: 8, brit: 2, heat: 6, diff: 4, spec: "Стеклонаполненный полипропилен (до 30% волокна) для автомобильных бачков, воздуховодов и корпусов насосов.", look: "Инженерный матовый пластик.", layer: "Плотное спекание без сильного коробления.", tex: "tex-matte" },
+                    { id: 82, name: "HDPE (Полиэтилен высокой плотности)", group: "7. Полиолефины и антифрикционные (PP / PE / POM)", str: 4, tough: 9, brit: 1, heat: 4, diff: 9, spec: "Полиэтилен высокой плотности: химически инертный и вязкий, но крайне сложный в FDM из-за усадки и низкой адгезии.", look: "Молочно-белый восковой пластик.", layer: "Сложное спекание и колоссальная усадка, слои могут отслаиваться.", tex: "tex-glossy" },
+                    { id: 83, name: "UHMWPE (Сверхвысокомолекулярный ПЭ)", group: "7. Полиолефины и антифрикционные (PP / PE / POM)", str: 5, tough: 10, brit: 1, heat: 4, diff: 9, spec: "Сверхвысокомолекулярный полиэтилен: экстремальная стойкость к абразивному износу и минимальное трение.", look: "Скользкий восковой беловатый массив.", layer: "Крайне низкая межслойная адгезия из-за абсолютной инертности материала.", tex: "tex-glossy" },
+                    { id: 84, name: "POM (Полиоксиметилен / Делрин / Ацеталь)", group: "7. Полиолефины и антифрикционные (PP / PE / POM)", str: 7, tough: 7, brit: 2, heat: 6, diff: 9, spec: "Полиоксиметилен для шестерён и ходовых гаек: низкое трение без смазки, но высокая усадка и выделение формальдегида при перегреве.", look: "Безупречно гладкий матовый или кремовый пластик с низким трением.", layer: "Слабая межслойная адгезия; детали из POM требуют идеальной калибровки и горячего стола.", tex: "tex-glossy" },
+                    { id: 85, name: "PBT (Полибутилентерефталат)", group: "7. Полиолефины и антифрикционные (PP / PE / POM)", str: 6, tough: 7, brit: 3, heat: 7, diff: 6, spec: "Полибутилентерефталат: жёсткий, износостойкий, хороший диэлектрик, устойчив к растворителям.", look: "Твердый глянцевый или матовый пластик (материал для клавиш клавиатур).", layer: "Хорошая межслойная прочность при правильной температуре.", tex: "tex-glossy" },
+
+                    { id: 86, name: "PEEK (Полиэфирэфиркетон)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 10, tough: 8, brit: 2, heat: 10, diff: 10, spec: "Полиэфирэфиркетон: рабочая температура до 250°C, высочайшая прочность и химстойкость; требует сопла 400°C+ и камеры 120°C+.", look: "Благородный золотисто-коричневый или натуральный бежевый матовый цвет.", layer: "Требует промышленной термокамеры (120–150°C) для монолитного спекания кристаллической решетки.", tex: "tex-wood" },
+                    { id: 87, name: "PEEK-CF (PEEK с углеволокном)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 10, tough: 7, brit: 3, heat: 10, diff: 9, spec: "Угленаполненный PEEK с максимальной удельной жёсткостью для замены лёгких сплавов в авиакосмосе.", look: "Черный матовый аэрокосмический карбон.", layer: "Углеволокно улучшает стабильность спекания суперполимера.", tex: "tex-carbon" },
+                    { id: 88, name: "PEKK (Полиэфиркетонкетон)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 10, tough: 8, brit: 2, heat: 10, diff: 9, spec: "Полиэфиркетонкетон: медленная кинетика кристаллизации обеспечивает лучшую межслойную адгезию и меньшую усадку, чем у PEEK.", look: "Плотный технический матовый массив.", layer: "Более предсказуемое и прочное спекание слоёв по сравнению с чистым PEEK.", tex: "tex-wood" },
+                    { id: 89, name: "PEI / Ultem 9085 (Модифицированный)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 9, tough: 8, brit: 2, heat: 9, diff: 9, spec: "Модифицированный полиэфиримид с высокой ударной вязкостью и сертификацией пожаробезопасности для авиации.", look: "Янтарно-коричневый полупрозрачный инженерный пластик.", layer: "Высокая межслойная прочность при печати в термокамере.", tex: "tex-glass" },
+                    { id: 90, name: "PEI / Ultem 1010 (Чистый полиэфиримид)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 10, tough: 6, brit: 4, heat: 10, diff: 9, spec: "Чистый полиэфиримид с теплостойкостью до 215°C и минимальным коэффициентом теплового расширения.", look: "Янтарный жесткий глянец.", layer: "Плотное прочное спекание при температуре камеры 140°C+.", tex: "tex-glass" },
+                    { id: 91, name: "PPS (Полифениленсульфид)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 8, tough: 5, brit: 5, heat: 9, diff: 7, spec: "Полифениленсульфид: не горит, не растворяется ни в одном растворителе до 200°C, обладает высокой жёсткостью.", look: "Звонкий металлический матовый финиш.", layer: "Требует высокой температуры стола и камеры для прочной спайки слоёв.", tex: "tex-metal" },
+                    { id: 92, name: "PPS-CF (PPS с углеволокном)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 10, tough: 5, brit: 5, heat: 10, diff: 6, spec: "Угленаполненный PPS: теплостойкость свыше 230°C, абсолютная огнестойкость и печать на принтерах с соплом 320–350°C.", look: "Черный матовый композит с высокой жесткостью и металлическим звуком при ударе.", layer: "Отличное спекание слоёв при доступных для закрытых камер 90–100°C стола.", tex: "tex-carbon" },
+                    { id: 93, name: "PPSU (Полифенилсульфон)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 8, tough: 9, brit: 1, heat: 9, diff: 9, spec: "Аморфный полифенилсульфон (держит ~205°C), выдерживающий многократную стерилизацию перегретым паром без потери прочности.", look: "Прозрачный янтарный медицинский глянец.", layer: "Высочайшая межслойная вязкость и ударопрочность.", tex: "tex-glass" },
+                    { id: 94, name: "PVDF (Фторполимер / Кайнар)", group: "8. Суперконструкционные (PEEK / PEI / PPS)", str: 6, tough: 7, brit: 2, heat: 7, diff: 8, spec: "Поливинилиденфторид (фторполимер): стойкость к концентрированным кислотам, галогенам, УФ и радиации.", look: "Полупрозрачный матовый химически стойкий пластик.", layer: "Спекание требует строгого контроля температуры во избежание деформаций.", tex: "tex-matte" },
+
+                    { id: 95, name: "PVA (Водорастворимый ПВС)", group: "9. Поддержки и спецматериалы", str: 3, tough: 4, brit: 5, heat: 2, diff: 6, spec: "Поливиниловый спирт: водорастворимый материал поддержек для PLA и нейлона, требует строгой защиты от влаги.", look: "Прозрачно-желтоватый филамент, мгновенно впитывает сырость из воздуха.", layer: "Хорошо сцепляется с основными материалами, растворяется в обычной воде.", tex: "tex-glass" },
+                    { id: 96, name: "BVOH (Быстрорастворимая поддержка)", group: "9. Поддержки и спецматериалы", str: 4, tough: 4, brit: 5, heat: 2, diff: 5, spec: "Сополимер бутендиола и винилового спирта: растворяется в воде значительно быстрее PVA и меньше засоряет сопло.", look: "Матовый гладкий светлый пруток.", layer: "Быстрое растворение в воде, отличное сцепление с PLA и PETG.", tex: "tex-glossy" },
+                    { id: 97, name: "PMMA (Акрил / Оргстекло)", group: "9. Поддержки и спецматериалы", str: 7, tough: 3, brit: 7, heat: 5, diff: 5, spec: "Полиметилметакрилат (оргстекло): высокая твёрдость поверхности, светопропускание и стойкость к УФ.", look: "Идеально прозрачное органическое стекло.", layer: "Слои спекаются умеренно, материал склонен к хрупкости при резких ударах.", tex: "tex-glass" },
+                    { id: 98, name: "PCL (Низкотемпературный поликапролактон)", group: "9. Поддержки и спецматериалы", str: 3, tough: 8, brit: 1, heat: 1, diff: 2, spec: "Низкотемпературный биополимер с температурой плавления 55–60°C, допускающий ручную формовку в горячей воде.", look: "Восковой мягкий молочно-белый пластик.", layer: "Сплавляется намертво даже при нагреве в кипятке вручную.", tex: "tex-glossy" },
+                    { id: 99, name: "Wax Filament (Выжигаемый восковой)", group: "9. Поддержки и спецматериалы", str: 1, tough: 1, brit: 9, heat: 1, diff: 5, spec: "Выжигаемый восковой полимер с нулевой зольностью для литья металлов по выплавляемым моделям.", look: "Восковая матовая гладкая поверхность.", layer: "Хрупкий по слоям, создан специально для выжигания в муфельной печи без остатка.", tex: "tex-matte" },
+                    { id: 100, name: "Metal-Polymer 316L (Под спекание в металл)", group: "9. Поддержки и спецматериалы", str: 2, tough: 1, brit: 9, heat: 10, diff: 7, spec: "Филамент с 85–90% порошка нержавеющей стали для последующего удаления связующего и спекания в монолитный металл.", look: "Тяжелый матовый пластик с металлом (после печи -- настоящая стальная деталь).", layer: "В «сыром» виде спекание хрупкое, монолитной прочность становится только после спекания в печи.", tex: "tex-metal" }
+                ],
+                toggleFavorite(id) {
+                    if (this.favorites.includes(id)) {
+                        this.favorites = this.favorites.filter(fav => fav !== id);
+                    } else {
+                        this.favorites.push(id);
+                    }
+                    localStorage.setItem('all3print_favorites', JSON.stringify(this.favorites));
+                },
+                isFavorite(id) {
+                    return this.favorites.includes(id);
+                },
+                get favoriteItems() {
+                    return this.plastics.filter(item => this.favorites.includes(item.id));
+                },
+                resetFilters() {
+                    this.searchQuery = '';
+                    this.selectedGroup = '';
+                    this.sortBy = 'id';
+                    this.filterFavorites = false;
+                },
+                get filteredPlastics() {
+                    let result = this.plastics.filter(item => {
+                        let matchSearch = item.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                                          item.spec.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        let matchGroup = this.selectedGroup === '' || item.group === this.selectedGroup;
+                        let matchFav = !this.filterFavorites || this.favorites.includes(item.id);
+                        return matchSearch && matchGroup && matchFav;
+                    });
+
+                    return result.sort((a, b) => {
+                        if (this.sortBy === 'id') return a.id - b.id;
+                        if (this.sortBy === 'str-desc') return b.str - a.str;
+                        if (this.sortBy === 'str-asc') return a.str - b.str;
+                        if (this.sortBy === 'tough-desc') return b.tough - a.tough;
+                        if (this.sortBy === 'heat-desc') return b.heat - a.heat;
+                        if (this.sortBy === 'heat-asc') return a.heat - b.heat;
+                        if (this.sortBy === 'diff-asc') return a.diff - b.diff;
+                        if (this.sortBy === 'diff-desc') return b.diff - a.diff;
+                        return 0;
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
